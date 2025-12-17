@@ -234,7 +234,7 @@
                                 <input type="hidden" name="cek[]" value="<?= $i->as_take_away ?>">
                                 <input type="hidden" name="qta[]" value="<?= $i->qty_take_away ?>">
                                 <input type="hidden" name="harga[]" value="<?= $i->unit_price ?>">
-                                <input type="hidden" name="pesan[]" value="<?= $i->extra_notes ?>">
+                                <input type="hidden" name="pesan[]" value="<?= !empty($i->extra_notes) ? $i->extra_notes : $i->od ?>">
                                 
                                 <!-- <input type="hidden" name="addons[]" value="<?= $i->ad ?>"> -->
                                 <input type="hidden" name="id[]" value="<?= $i->id ?>" id="id">
@@ -514,7 +514,7 @@
             <input type="hidden" name="pesandua[]" value="<?= $i->notesdua ?>">
             <input type="hidden" name="pesantiga[]" value="<?= $i->notesdua ?>">
             <?php   endif ?> -->
-            <input type="hidden" name="pesan[]" value="<?= $i->extra_notes ?>">
+            <input type="hidden" name="pesan[]" value="<?= !empty($i->extra_notes) ? $i->extra_notes : $i->od ?>">
             <input type="hidden" name="no[]" id="item_code<?= $i->id ?>" value="<?= $i->item_code ?>" class="form-control item_code<?= $i->id ?>">
             <input type="hidden" name="need_stock[]" id="need_stock" value="<?= $i->need_stock ?>" class="form-control need_stock">
           <?php endforeach ?>
@@ -538,7 +538,7 @@
             <input type="hidden" name="pesandua[]" value="<?= $i->notesdua ?>">
             <input type="hidden" name="pesantiga[]" value="<?= $i->notesdua ?>">
             <?php   endif ?> -->
-            <input type="hidden" name="pesan[]" value="<?= $i->extra_notes ?>">
+            <input type="hidden" name="pesan[]" value="<?= !empty($i->extra_notes) ? $i->extra_notes : $i->od ?>">
             <input type="hidden" name="no[]" id="item_code<?= $i->id ?>" value="<?= $i->item_code ?>" class="form-control item_code<?= $i->id ?>">
             <input type="hidden" name="need_stock[]" id="need_stock" value="<?= $i->need_stock ?>" class="form-control need_stock">
           <?php endforeach ?>

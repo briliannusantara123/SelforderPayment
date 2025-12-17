@@ -360,7 +360,7 @@
                     <?php endif ?>
                 </div>
                 <div class="col-8">
-                    <span class="description"><?= $i->description ?></span><br>
+                    <span class="description"><?= $i->description ?> <?php if ($i->extra_notes): ?>(<?= trim($i->extra_notes) ?>)<?php endif; ?></span><br>
                     <?php  $disc = intval($i->disc) / 100; $hasil = ($i->unit_price * $disc) ?>
                     <?php if ($disc != 0 ): ?>
                          <span class="unit-price">Rp <?= number_format($hasil) ?></span>
@@ -386,7 +386,7 @@
                     <?php endif ?>
                 </div>
                 <div class="col-8">
-                    <span class="description"><?= $i->description ?></span><br>
+                    <span class="description"><?= $i->description ?> <?php if ($i->extra_notes): ?>(<?= trim($i->extra_notes) ?>)<?php endif; ?></span><br>
                     <?php  $disc = intval($i->disc) / 100; $hasil = ($i->unit_price * $disc) ?>
                     <?php if ($disc != 0 ): ?>
                          <span class="unit-price">Rp <?= number_format($hasil) ?></span>
@@ -412,7 +412,7 @@
                     <?php endif ?>
                 </div>
                 <div class="col-8">
-                    <span class="description"><?= $i->description ?></span><br>
+                    <span class="description"><?= $i->description ?> <?php if ($i->extra_notes): ?>(<?= trim($i->extra_notes) ?>)<?php endif; ?></span><br>
                     <?php  $disc = intval($i->disc) / 100; $hasil = ($i->unit_price * $disc) ?>
                     <?php if ($disc != 0 ): ?>
                          <span class="unit-price">Rp <?= number_format($hasil) ?></span>

@@ -327,7 +327,7 @@ function __construct()
 
 	        // Jika item sama sudah ada → boleh lanjut
 	        if ($cekSPchart || $cekSPtrans) {
-	            $this->check_stock($item_code, $qty, $id_customer, $table);
+	            $this->check_stock($item_code, $qty, $id_customer, $table, $cek);
 	            continue;
 	        }
 
@@ -518,11 +518,12 @@ function __construct()
 	    $namaip = $this->input->post('namaip');
 	    $harga = $this->input->post('harga');
 	    $hargaaddon = $this->input->post('hargaaddon');
+	    $pesan = $this->input->post('pesan');
 	    $hargaip = $this->input->post('hargaip');
 	    $id_customer = $this->session->userdata('id');
 	    $uoi = $this->session->userdata('user_order_id');
 	    $id_trans = $this->db->get_where('sh_t_transactions', ['id_customer' => $id_customer])->row()->id;
-	    // var_dump($harga);exit();
+	    // var_dump($pesan);exit();
 	    // Insert data transaksi untuk item dan addon
 	    if ($type == "PN") {
     		$this->bayar($table,$cek,$sub);
@@ -684,7 +685,7 @@ function __construct()
 	    $item_code   = $this->input->post('no');
 	    $need_stock  = $this->input->post('need_stock');
 	    $is_paket    = $this->input->post('is_paket');
-
+	    // var_dump($pesan);exit();
 	    // Mengambil relasi customer-table
 	    $id_table = $this->db->get_where('sh_rel_table', array('id_customer' => $id_customer))->row();
 	    $st = $id_table ? $id_table->status : 0;
@@ -827,317 +828,7 @@ function __construct()
 	    http_response_code(200);
 	}
 
-	public function bayarkasir($table,$cek,$sub)
-	{
-		$amount = $this->input->post('totalbayar');
-		$table = $this->session->userdata('nomeja');
-		$qty = $this->input->post('qty');
-		$ata = $this->input->post('cek');
-		$qta = $this->input->post('qta');
-		$nama = $this->input->post('nama');
-		$pesan = $this->input->post('pesan');
-		$pesandua = $this->input->post('pesandua');
-		$pesantiga = $this->input->post('pesantiga');
-		$harga = $this->input->post('harga');
-		$item_code = $this->input->post('no');
-		$need_stock = $this->input->post('need_stock');
-		$is_paket = $this->input->post('is_paket');
-		$id_customer = $this->session->userdata('id');
-		$id_trans = $this->db->order_by('id',"desc")->where('id_customer',$id_customer)
-                    ->limit(1)
-                    ->get('sh_t_transactions')
-                    ->row();
-		$id_table = $this->db->get_Where('sh_rel_table', array('id_customer'=> $id_customer))->row();
-		$st = $id_table->status;
-
-			$date = date('Y-m-d');
-			$ctime = date('H:i:s');
-			$this->db->from('sh_set_time_cekdata');
-			$this->db->order_by('id', 'DESC'); // urutkan berdasarkan id secara descending
-			$this->db->limit(1); // ambil hanya satu baris terakhir
-			$query = $this->db->get();
-			$no = $query->row('seconds');
-			$seconds = " +".$no." seconds";
-			
-			$this->db->from('sh_t_transaction_details');
-			$where = "left(created_date,10) ='".$date."' and selected_table_no = '".$table."' and selforder = 1 and user_order_id = '".$this->session->userdata('user_order_id')."'";
-			$this->db->where($where);
-			$this->db->where_in('item_code',$item_code);
-			$this->db->where_in('qty',$qty);
-			$this->db->order_by('id','DESC'); 
-			$this->db->limit(1); // ambil hanya satu baris terakhir
-			$query = $this->db->get();
-			$q = $query->row();
-			
-
-			if ($q) {
-				$time = date('H:i:s', strtotime($ctime . $seconds));
-			}else{
-				$time = date('H:i:s', strtotime($ctime . $seconds));
-			}
-
-							  		
-
-		if ($st == "Dining" || $st == "Order") {
-			$order_stat = 1;
-		}elseif ($st == "Billing" || $st == "Payment" || $st == "Cleaning" ) {
-			$order_stat = 2;
-		}
-		$today = date('Y-m-d');
-		$curTime = explode(':', date('H:i:s'));
-		$cekWeekEnd = date('D', strtotime($today));
-		$check_promo = $this->Item_model->get_promo($today)->num_rows();
-		$get_promo = $this->Item_model->get_promo($today)->row_array();
-		$discount = 0;
-		if($check_promo > 0){
-			$item_check = $this->Item_model->get_info_item($this->input->post('item_code'),$get_promo)->num_rows();
-			if($item_check > 0){
-				$item_data = $this->Item_model->get_info_item($this->input->post('item_code'),$get_promo)->row_array();
-				if($get_promo["promo_type"] == 'Discount'){
-					if($get_promo["promo_criteria"] == 'Weekday'){ //Weekday
-						if($cekWeekEnd !== "Sat" || $cekWeekEnd !== "Sun" || $cekWeekEnd !== "Sab" || $cekWeekEnd !== "Min"){
-							if($curTime[0] >= $get_promo["promo_from"] && $curTime[0] <= $get_promo["promo_to"]){
-								$discount = $get_promo["promo_value"];		
-							}else{
-								$discount = 0;
-							}
-						}else{
-							$discount = 0;
-						}	
-					}else if($get_promo["promo_criteria"] == 'Weekend'){ //Weekend
-						if($cekWeekEnd === "Sat" || $cekWeekEnd === "Sun" || $cekWeekEnd === "Sab" || $cekWeekEnd === "Min"){
-							if($curTime[0] >= $get_promo["promo_from"] && $curTime[0] <= $get_promo["promo_to"]){
-								$discount = $get_promo["promo_value"];		
-							}else{
-								$discount = 0;
-							}
-						}else{
-							$discount = 0;
-						}	
-					}else{ //Full Week
-						if($curTime[0] >= $get_promo["promo_from"] && $curTime[0] <= $get_promo["promo_to"]){
-							$discount = $get_promo["promo_value"];		
-						}else{
-							$discount = 0;
-						}
-					}
-				}else{
-					$discount = 0;	
-				}
-			}else{
-				$discount = 0;
-			}
-		}
-		$cabang = $this->db->order_by('id',"desc")
-  			->limit(1)
-  			->get('sh_m_cabang')
-  			->row('id');
-  		$t = $this->Item_model->cekdatatrans($id_customer)->row();
-  		
-  		if ($t) {
-	  		 if ($t->parent_id != 0) {
-	  		 	//transaksi detail
-	  		 	$td = $this->Item_model->cekdatatransdetail($t->parent_id,'parent')->row();
-	  		 	// //get detail yg checker_primted = 0
-	  		 	// $gd = $this->Item_model->getdetail($t->parent_id)->row();
-	  		 	// if ($gd) {
-	  		 	// 	$cd = $gd->cekdata;
-	  		 	// }else{
-	  		 	// 	if ($td->checker_printed == 0) {
-			  		//  	$cd = $td->cekdata;
-			  		// }else{
-			  		//  	$cd = $td->cekdata + 1;
-			  		// }
-	  		 	// }
-	  		 	if ($td->checker_printed == 0) {
-			  		 $cd = $td->cekdata;
-			  	}else{
-			  		 $cd = $td->cekdata + 1;
-			  	}
-		  		 
-	  		 }else{
-	  		 	$td = $this->Item_model->cekdatatransdetail($t->id,'notparent')->row();
-	  		 	// $gd = $this->Item_model->getdetail($t->id)->row();
-	  		 	// if ($gd) {
-	  		 	// 	$cd = $gd->cekdata;
-	  		 	// }else{
-	  		 	// 	if ($td->checker_printed == 0) {
-			  		//  	$cd = $td->cekdata;
-			  		// }else{
-			  		//  	$cd = $td->cekdata + 1;
-			  		// }
-	  		 	// }
-	  		 	if ($td) {
-	  		 		if ($td->checker_printed == 0) {
-			  		 	$cd = $td->cekdata;
-			  		}else{
-			  		 	$cd = $td->cekdata + 1;
-			  		}
-	  		 	}else{
-	  		 		$cd = 1;
-	  		 	}
-	  		 	
-	  		  
-	  		 }
-  		}else{
-  		  $cd = 1;
-  		}
-  		// var_dump($cd);exit();
-		$nomer = 1;
-		for ($i = 0; $i < count($qty); $i++) {
-			if ($qty[$i] != 0) {
-				$n = $nomer++ . "<br>"; 
-				$data[] = [
-				'id_trans' => $id_trans->id,
-				'item_code' => $item_code[$i],
-				'qty' => $qty[$i],
-				'cabang' => $cabang,
-				'unit_price' => $harga[$i],
-				'description' => $nama[$i],
-				'start_time_order' => date('H:i:s'),
-				'entry_by' => $this->session->userdata('username'),
-				'disc' => $discount,
-				'is_cancel' => 0,
-				'session_item' => 0,
-				'selected_table_no' => $table,
-				'seat_id' => 0,
-				'sort_id' => $n,
-				'as_take_away' => 0,
-				'qty_take_away' => 0,
-				'extra_notes' => $pesan[$i],
-				'checker_printed' => 0,
-				'created_date' => date('Y-m-d H:i:s'),
-				'order_type' => $order_stat,
-				'selforder' => 1,
-				'is_printed_so' => 0,
-				'cekdata' => $cd,
-				'user_order_id' => $this->session->userdata('user_order_id'),
-				'timeout_order_so' => $time,
-			];
-			 }
-			 // $cekdata = $this->Item_model->getDataC($item_code);
-
-			 $cekdata[$i] = $this->db->where_in('no',$item_code[$i])
-		  			->order_by('id',"desc")
-		  			->get('sh_m_item')
-		  			->row();
-    		// var_dump($item_code[$i]);
-    		$datacart = array();
-
-			 if ($cekdata[$i]->need_stock == 1) {
-					 	$total[$i] = $cekdata[$i]->stock - $qty[$i];
-						echo $cekdata[$i]->stock - $qty[$i];
-						if ($total[$i] == 0) {
-							$datacart[] = [
-		    					'no' => $item_code[$i],
-		    					'stock' => $total[$i],
-		    					'is_sold_out' => 1,
-		    					'stock_update_date' => date('Y-m-d H:i:s'),
-		    					'stock_update_by' => $this->session->userdata('username'),
-		    				];
-						}else{
-							$datacart[] = [
-		    					'no' => $item_code[$i],
-		    					'stock' => $total[$i],
-		    					'stock_update_date' => date('Y-m-d H:i:s'),
-		    					'stock_update_by' => $this->session->userdata('username'),
-		    				];
-						}
-						$this->db->update_batch('sh_m_item',$datacart,'no');
-					 }
-
-			 $stok[$i] = $this->db->where('no',$item_code[$i])
-		  			->order_by('id',"desc")
-		  			->get('sh_m_item')
-		  			->row('stock');
-		  		 	if ($need_stock[$i] != 0) {
-						$n = $nomer++ . "<br>"; 
-						$datastok[] = [
-						'log_type' => 'Update Stock',
-						'cabang' => $cabang,
-						'item_code' => $item_code[$i],
-						'stock_before' =>$stok[$i]+$qty[$i],
-						'stock_after' =>$stok[$i]+$qty[$i]-$qty[$i], 
-						'difference' =>$qty[$i],
-						'stock_entry' => date('Y-m-d H:i:s'),
-						'username' => $this->session->userdata('username'),
-						'description' => 'Stock Used '.$qty[$i],
-					];
-					 }else{
-					 	$n = $nomer++ . "<br>"; 
-							$datastok[] = [
-							'log_type' => 'Update Stock',
-							'cabang' => $cabang,
-							'item_code' => $item_code[$i],
-							'stock_before' =>$stok[$i],
-							'stock_after' =>$stok[$i], 
-							'difference' =>$stok[$i],
-							'stock_entry' => date('Y-m-d H:i:s'),
-							'username' => $this->session->userdata('username'),
-							'description' => 'Stock Used '.$qty[$i],
-						];
-					 }
-			if ($qty[$i] == 0) {
-				$status = 'gagal';
-			}else{
-				$status= 'berhasil';
-			}
-	    
-		}
-		if ($status == "berhasil") {
-			
-
-			$rslt = $this->db->insert_batch('sh_stok_logs',$datastok);
-			$result = $this->db->insert_batch('sh_t_transaction_details',$data);
-			if ($result) {
-				$ic = $this->session->userdata('id');
-				 $data = ['status' => 'Dining'];
-				$this->db->where('id_customer',$ic);
-    			$this->db->update('sh_rel_table',$data);
-    			$ic = $this->session->userdata('id');
-				$where = "left(entry_date,10) ='".$date."' and id_customer = '".$ic."' and id_trans  = '".$id_trans->id."' and user_order_id = '".$this->session->userdata('user_order_id')."'";
-				$this->db->where($where);
-				$this->db->where_in('item_code',$item_code);
-	    		$this->db->delete('sh_cart');
-	    		$it = $this->session->userdata('id_table');$uoi = $this->session->userdata('user_order_id');
-			$date = date('Y-m-d');
-			// $wheredetails ="id_customer ='".$ic."' and id_table ='".$it."' and user_order_id ='".$uoi."' and left(entry_date,10) ='".$date."'";
-			// $this->db->where($wheredetails);
-			// $this->db->delete('sh_cart_details');
-	    		$cabang = $this->db->order_by('id',"desc")
-	  			->limit(1)
-	  			->get('sh_m_cabang')
-	  			->row('id');
-	  			
-	    		$nomer = 1;
-				
-				// $datastatus = ['status' => 'Billing'];
-				// $this->db->where('id_customer',$id_customer);
-		  //   	$this->db->update('sh_rel_table',$datastatus);
-    			
-					echo "<br>";
-
-    		
-    			$this->db->query("update sh_t_transactions set date_order_menu='".date('Y-m-d H:i:s')."',is_order_menu_active=1,start_time_order='".date('H:i:s')."',checker_printed = 1 where id = '".$id_trans->id."' and id_customer = '".$ic."'");
-    			$this->session->set_flashdata('successcart','Please proceed with the payment at the cashier.');
-				redirect('index.php/selforder/home/'.$table);
-				// $where = array('qty' => 0);
-				// $this->Item_model->hapus_qty($where,'testing');
-			}else{
-				echo "gagal order";
-			}
-		}else{
-			$this->session->set_flashdata('error','stock is not fulfilled');
-			if ($cek == 'Makanan') {
-			$log = 'index.php/Cart/home/'.$table.'/Makanan/'.$sub.'#'.preg_replace('/%20/', '_', $sub);;
-			}elseif ($cek == 'Minuman') {
-				$log = 'index.php/Cart/home/'.$table.'/Minuman/'.$sub.'#'.preg_replace('/%20/', '_', $sub);
-			}else{
-				$log = 'index.php/Cart/home/'.$table;
-			}
-			redirect(base_url().$log);
-		}
-	}
+	
 	public function sukses($nomeja,$cek=NULL,$sub=NULL,$no=NULL)
     {
 
@@ -1164,7 +855,7 @@ function __construct()
 		$need_stock = $this->input->get('need_stock');
 		$is_paket = $this->input->get('is_paket');
 		$id_customer = $this->session->userdata('id');
-		
+		 // var_dump($pesan);exit();
 		
  
         $this->logpayment();
@@ -1181,7 +872,7 @@ function __construct()
 	    $need_stock  = $this->input->get('need_stock');
 	    $amount      = $this->input->get('amount');
 	    $table       = $this->input->get('table');
-
+	    // var_dump($pesan);exit();
 	    // VALIDASI
 	    if (!$id_customer || !$item_code) {
 	        echo json_encode([
